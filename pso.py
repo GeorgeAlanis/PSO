@@ -108,7 +108,7 @@ class PSO:
                 individuo.append(
                     classes.ClusterPdV(
                         [classes.PdV(*point[:-1]) for point in individuo_df[individuo_df.cluster == i].values],
-                        *cluster.cluster_centers_[i]))
+                        cluster.cluster_centers_[i]))
 
             population.append(Particle(individuo, self.use_var))
         return population
