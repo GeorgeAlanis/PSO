@@ -1,9 +1,13 @@
+import copy
+
 import numpy as np
 import pandas as pd
-import copy
-from tqdm import tqdm
 from numpy.random import ranf
 from sklearn.cluster import KMeans
+from tqdm import tqdm
+
+import classes
+import utils
 
 
 class Particle:
@@ -33,15 +37,12 @@ class Particle:
 
         for i in xrange(len(self.centroids)):
             self.vel[i] = (W * self.vel[i]) + (C1 * R1 * (utils.euclidean(self.best_centroids[i], self.centroids[i])))\
-                          + (C2 * R2 * (utils.euclidean(Gb[i] , self.centroids[i])))
-            self.centroids[i] += classes.Point2D(*self.vel[i])
+                          + (C2 * R2 * (utils.euclidean(Gb[i], self.centroids[i])))
+            self.centroids[i] += self.vel[i]
 
         self.recluster()
 
-        if self.use_variance:
-            self.fit_by_variance()
-        else:
-            self.fit_by_area()
+        self.calculate_fitness()
 
         if self.fitness > self.best_fitness:
             self.best_fitness = self.fitness
@@ -107,7 +108,7 @@ class PSO:
                 individuo.append(
                     classes.ClusterPdV(
                         [classes.PdV(*point[:-1]) for point in individuo_df[individuo_df.cluster == i].values],
-                        classes.Point2D(*cluster.cluster_centers_[i])))
+                        *cluster.cluster_centers_[i]))
 
             population.append(Particle(individuo, self.use_var))
         return population
