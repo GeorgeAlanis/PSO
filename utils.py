@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from sklearn import preprocessing
 
+
 def euclidean(p1, p2):
     return (p1[0] - p2[0]) * (p1[0] - p2[0]) + (p1[1] - p2[1]) * (p1[1] - p2[1])
 
@@ -24,7 +25,7 @@ def getData(file_path='assets/Sprint7ToroideMixto.csv'):
     z_scaled = min_max_scaler.fit_transform(z)
 
     # Run the normalizer on the dataframe
-    df_normalized = pd.DataFrame(x_scaled)
+    #df_normalized = pd.DataFrame(x_scaled)
     stores = np.array(
         list(
             zip(

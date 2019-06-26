@@ -112,6 +112,6 @@ class ClusteringPSO:
                         best_particle = deepcopy(particle)
                         self.global_best_fitness = particle.fitness
                         self.global_best_centroids = particle.centroids.copy()
-                        pb.set_postfix(fitness=self.Gb_fit, refresh=True)
+                        pb.set_postfix(fitness=self.global_best_fitness, refresh=True)
                 pb.update()
             return best_particle
