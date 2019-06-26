@@ -59,7 +59,7 @@ class Particle:
 
             if smallest_distance[1] != self.elements[i][-1]:
                 self.clusters[self.elements[i][-1]].remove(self.elements[i])
-                self.clusters[j].push_back(self.elements[i])
+                self.clusters[smallest_distance[1]].push_back(self.elements[i])
 
 
 class ClusteringPSO:
@@ -75,7 +75,7 @@ class ClusteringPSO:
         self.c2 = c2
         self.fit_by = fit_by
         self.population = []
-        self.global_best_centroids = np.zeros([self.number_of_clusters,2])
+        self.global_best_centroids = np.zeros([self.number_of_clusters, 2])
         self.global_best_fitness = float("-inf")
 
         self.generate_population()
