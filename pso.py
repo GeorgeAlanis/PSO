@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 import utils
 import classes
 from copy import deepcopy
@@ -13,57 +14,85 @@ class Particle:
         self.centroids = np.zeros([self.number_of_clusters, 2])
         self.areas = np.zeros(self.number_of_clusters)
         self.store_times = np.zeros(self.number_of_clusters)
-        self.clusters = deepcopy(clusters)
+#        self.clusters = deepcopy(clusters)
         self.elements = elements.copy()
         self.number_of_elements = len(self.elements)
         self.vel = np.zeros([self.number_of_clusters, 2])
         self.fitness_by = fitness_by
 
         for i in xrange(self.number_of_clusters):
-            self.centroids[i] = clusters[i].centroid
+            self.centroids[i] = clusters[i].centroid.copy()
             self.store_times[i] = clusters[i].total_time
             self.areas[i] = clusters[i].area
-
-        self.calculate_fitness()
-        self.best_fitness = self.fitness
+        
         self.best_centroids = self.centroids.copy()
+        self.calculate_fitness()
+        self.best_fitness = self.fitness     
 
     def calculate_fitness(self):
         if self.fitness_by == 'variance':
             self.fitness = -1.0 * np.var(self.store_times)
+        elif self.fitness == 'area':
+            self.fitness = -1.0 * np.var(self.areas)
 
     def move(self, w, c1, c2, global_best_centroids):
         r1, r2 = np.random.ranf(size=2)
 
         for i in xrange(self.number_of_clusters):
-            self.vel[i] = (w * self.vel[i]) + (c1 * r1 * (utils.euclidean(self.best_centroids[i], self.centroids[i])))\
-                          + (c2 * r2 * (utils.euclidean(global_best_centroids[i], self.centroids[i])))
-            self.centroids[i] += self.vel[i]
+            self.vel[i] = (w * self.vel[i]) + (c1 * r1 * (self.best_centroids[i] - self.best_centroids[i]))\
+                          + (c2 * r2 * (global_best_centroids[i] - self.centroids[i]))
+            current_move = self.centroids[i] + self.vel[i]
+            if current_move[0] > 1 or current_move[0] < 0 or current_move[1] > 1 or current_move[1] < 0:
+                self.centroids[i] = np.random.choice(np.linspace(0, 1, 100), 2)
+                self.vel[i] = np.random.choice(np.linspace(-0.3, 0.3, 1000), 2)
+            else:
+                self.centroids[i] += self.vel[i]
 
+#        self.update_centroids()
         self.recluster()
         self.calculate_fitness()
 
         if self.fitness > self.best_fitness:
-            self.best_fitness = self.fitness
+            self.best_fitness = self.fitness.copy()
             self.best_centroids = self.centroids.copy()
 
+    # def update_centroids(self):
+    #     for i in xrange(self.number_of_clusters):
+    #         self.centroids = self.clusters[i].centroid.copy()
+
     def recluster(self):
+
         for i in xrange(self.number_of_elements):
             smallest_distance = [float('inf'), None]
 
             for j in xrange(self.number_of_clusters):
-                current_distance = utils.euclidean(self.elements[i], self.clusters[j].centroid)
+                current_distance = utils.euclidean(self.elements[i], self.centroids[j])
 
                 if current_distance < smallest_distance[0]:
                     smallest_distance = [current_distance, j]
 
-            if smallest_distance[1] != self.elements[i][-1]:
-                self.clusters[self.elements[i][-1]].remove(self.elements[i])
-                self.clusters[smallest_distance[1]].push_back(self.elements[i])
+            if smallest_distance[1] != self.elements[i][3]:
+                self.store_times[self.elements[i][3]] -= self.elements[i][2]
+                self.store_times[smallest_distance[1]] += self.elements[i][2]
+                self.elements[i][3] = smallest_distance[1]
+
+    def plot_clusters(self):
+        plt.figure(figsize=(12, 12))
+        plt.scatter(self.elements[:, 0], self.elements[:, 1], c=self.elements[:, 3])
+        # for centroid in self.centroids:
+        #     plt.plot(centroid[0], centroid[1], marker='D', markersize=20)
+        #     print centroid
+        plt.title("Clusters")
+        axes = plt.gca()
+        axes.set_xlim([0, 1])
+        axes.set_ylim([0, 1])
+        plt.show()
+
+
 
 
 class ClusteringPSO:
-    def __init__(self, data, n_particles, n_clusters=13, seed=42, max_iter=10, w=1, c1=.5, c2=.5, fit_by='variance'):
+    def __init__(self, data, n_particles, n_clusters=13, seed=42, max_iter=10, w=.2, c1=.4, c2=.6, fit_by='variance'):
         self.data = data.copy()
         self.number_of_elements = len(self.data)
         self.number_of_particles = n_particles
@@ -89,7 +118,7 @@ class ClusteringPSO:
             clusters = [classes.ClusterPdv(center, 0.0, 0.0) for center in cluster.cluster_centers_]
 
             for i in xrange(self.number_of_elements):
-                elements[i][-1] = cluster_labels[i]
+                elements[i][3] = cluster_labels[i]
                 clusters[cluster_labels[i]].push_back(elements[i])
 
             self.population.append(Particle(clusters, elements, self.fit_by))
@@ -102,16 +131,20 @@ class ClusteringPSO:
 
     @property
     def search(self):
-        best_particle = None
+
         with tqdm(total=self.max_iterations, unit=' Epoch') as pb:
-            pb.set_postfix(fitness=self.global_best_fitness, refresh=True)
+            pb.set_postfix(fitness=self.global_best_fitness, refresh=False)
+            # best_particle = None
             for _ in xrange(self.max_iterations):
                 for particle in self.population:
                     particle.move(self.w, self.c1, self.c2, self.global_best_centroids)
                     if particle.fitness > self.global_best_fitness:
-                        best_particle = deepcopy(particle)
+                        # best_particle = deepcopy(particle)
                         self.global_best_fitness = particle.fitness
                         self.global_best_centroids = particle.centroids.copy()
-                        pb.set_postfix(fitness=self.global_best_fitness, refresh=True)
+                        pb.set_postfix(fitness=self.global_best_fitness, refresh=False)
                 pb.update()
-            return best_particle
+                # for i in xrange(self.number_of_particles):
+                #     print self.population[i].fitness
+        self.population[0].plot_clusters()
+        return self.global_best_fitness, self.global_best_centroids

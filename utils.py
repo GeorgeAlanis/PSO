@@ -4,7 +4,9 @@ from sklearn import preprocessing
 
 
 def euclidean(p1, p2):
-    return (p1[0] - p2[0]) * (p1[0] - p2[0]) + (p1[1] - p2[1]) * (p1[1] - p2[1])
+    a = (p1[0] - p2[0]) * (p1[0] - p2[0])
+    b = (p1[1] - p2[1]) * (p1[1] - p2[1])
+    return a + b
 
 
 def getData(file_path='assets/Sprint7ToroideMixto.csv'):
@@ -29,9 +31,13 @@ def getData(file_path='assets/Sprint7ToroideMixto.csv'):
     stores = np.array(
         list(
             zip(
-                x_scaled, y_scaled, z_scaled, np.zeros(len(data.lat.values))
+                x_scaled, y_scaled, z_scaled, np.array([None]*len(data.lat.values))
             )
         )
     )
     return stores
+
+
+def PolyArea(x,y):
+    return 0.5 * np.abs(np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1)))
 
