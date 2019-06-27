@@ -9,7 +9,7 @@ def euclidean(p1, p2):
     return a + b
 
 
-def getData(file_path='assets/Sprint7ToroideMixto.csv'):
+def get_data(file_path='assets/Sprint7ToroideMixto.csv'):
     data = pd.read_csv(file_path)
     data['tiempo_en_tienda'] = data['demanda'] * data['frecuencia']
 
@@ -38,6 +38,6 @@ def getData(file_path='assets/Sprint7ToroideMixto.csv'):
     return stores
 
 
-def PolyArea(x,y):
+def get_area(x, y):
     return 0.5 * np.abs(np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1)))
 

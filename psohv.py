@@ -23,10 +23,10 @@ class Particle:
             self.centroids[i] = clusters[i].centroid.copy()
             self.store_times[i] = clusters[i].total_time
             self.areas[i] = clusters[i].area
-        
+
         self.best_centroids = self.centroids.copy()
         self.calculate_fitness()
-        self.best_fitness = self.fitness     
+        self.best_fitness = self.fitness
 
     def calculate_fitness(self):
         if self.fitness_by == 'store_time':
@@ -44,7 +44,7 @@ class Particle:
         r1, r2 = np.random.ranf(size=2)
 
         for i in xrange(self.number_of_clusters):
-            self.vel[i] = (w * self.vel[i]) + (c1 * r1 * (self.best_centroids[i] - self.best_centroids[i]))\
+            self.vel[i] = (w * self.vel[i]) + (c1 * r1 * (self.best_centroids[i] - self.best_centroids[i])) \
                           + (c2 * r2 * (global_best_centroids[i] - self.centroids[i]))
             current_move = self.centroids[i] + self.vel[i]
             if current_move[0] > 1 or current_move[0] < 0 or current_move[1] > 1 or current_move[1] < 0:
